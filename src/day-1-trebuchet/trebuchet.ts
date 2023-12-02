@@ -1,75 +1,52 @@
 import { calibrationInput } from "./calibrationInput";
 
-const getDigit = (value: string) => {
-  if (value.length === 1) {
-    return value;
-  }
-
-  const digit = {
-    one: "1",
-    two: "2",
-    three: "3",
-    four: "4",
-    five: "5",
-    six: "6",
-    seven: "7",
-    eight: "8",
-    nine: "9",
-  }[value];
-
-  if (!digit) {
-    throw new Error(`${value} is not a valid digit`);
-  }
-
-  return digit;
+const replaceWordsWithDigits = (value: string) => {
+  return value
+    .replaceAll("one", "o1e")
+    .replaceAll("two", "t2o")
+    .replaceAll("three", "t3e")
+    .replaceAll("four", "f4r")
+    .replaceAll("five", "f5e")
+    .replaceAll("six", "s6x")
+    .replaceAll("seven", "s7n")
+    .replaceAll("eight", "e8t")
+    .replaceAll("nine", "n9e");
 };
 
-const extractNumber = (value: string) => {
-  // prettier-ignore
-  const digitOptions = [
-    "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
-    "1", "2", "3", "4", "5", "6", "7", "8", "9"
-  ];
+const getNumberOrUndefined = (char: string) => {
+  const isDigit = /^\d$/.test(char);
 
-  const digitArray = [];
-  for (const digit of digitOptions) {
-    const index = value.indexOf(digit);
+  if (isDigit) {
+    return Number(char);
+  }
 
-    if (index === -1) {
-      continue;
+  return undefined;
+};
+
+const extractNumber = (input: string) => {
+  const inputArray = input.split("");
+  const found = [undefined, undefined] as number[] | undefined[];
+
+  for (let start = 0; start < inputArray.length; start++) {
+    const end = inputArray.length - 1 - start;
+
+    found[0] ??= getNumberOrUndefined(inputArray[start]);
+    found[1] ??= getNumberOrUndefined(inputArray[end]);
+
+    if (found[0] && found[1]) {
+      break;
     }
-
-    digitArray[index] = getDigit(digit);
   }
 
-  const filterRes = digitArray.filter(Boolean);
-
-  const num1 = filterRes[0];
-  const num2 = filterRes[filterRes.length - 1];
-
-  return Number(`${num1}${num2}`);
+  return Number(`${found[0]}${found[1]}`);
 };
-
-const test = [
-  // "oneight",
-  "two1nine",
-  "eightwothree",
-  "abcone2threexyz",
-  "xtwone3four",
-  "4nineeightseven2",
-  "zoneight234",
-  "7pqrstsixteen",
-];
 
 export const trebuchet = () => {
-  const inputList = true ? test : calibrationInput;
+  const result = calibrationInput.reduce((sum, value, index) => {
+    const input = replaceWordsWithDigits(value);
+    const extractedNumber = extractNumber(input);
 
-  const result = inputList.reduce((sum, value, index) => {
-    const number = extractNumber(value);
-
-    console.log(index, value, number);
-
-    return sum + number;
+    return sum + extractedNumber;
   }, 0);
 
   console.log("Result: ", result);
